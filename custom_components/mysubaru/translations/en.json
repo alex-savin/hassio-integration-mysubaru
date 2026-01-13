@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MySubaru Websocket",
+        "description": "Connect to the MySubaru websocket add-on and provide MySubaru credentials.",
+        "data": {
+          "ws_url": "Websocket URL",
+          "username": "MySubaru username (email)",
+          "password": "MySubaru password",
+          "pin": "Security PIN",
+          "device_id": "Device ID",
+          "device_name": "Device name",
+          "region": "Region (USA/CAN)"
+        }
+      },
+      "verify": {
+        "title": "Verify Device",
+        "description": "Enter the 6-digit verification code sent to your registered contact.",
+        "data": {
+          "code": "Verification code"
+        }
+      }
+    }
+  }
+}

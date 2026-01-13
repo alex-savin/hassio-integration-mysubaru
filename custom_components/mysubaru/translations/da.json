@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MySubaru Websocket",
+        "description": "Opret forbindelse til MySubaru websocket-tilføjelsen og angiv dine MySubaru-legitimationsoplysninger.",
+        "data": {
+          "ws_url": "Websocket-URL",
+          "username": "MySubaru-brugernavn (e-mail)",
+          "password": "MySubaru-adgangskode",
+          "pin": "Sikkerheds-PIN",
+          "device_id": "Enheds-ID",
+          "device_name": "Enhedsnavn",
+          "region": "Region (USA/CAN)"
+        }
+      },
+      "verify": {
+        "title": "Bekræft enhed",
+        "description": "Indtast den 6-cifrede bekræftelseskode, der blev sendt til din registrerede kontakt.",
+        "data": {
+          "code": "Bekræftelseskode"
+        }
+      }
+    }
+  }
+}

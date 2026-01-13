@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MySubaru Websocket",
+        "description": "MySubaru websocket 애드온에 연결하고 MySubaru 자격 증명을 입력하세요.",
+        "data": {
+          "ws_url": "Websocket URL",
+          "username": "MySubaru 사용자 이름 (이메일)",
+          "password": "MySubaru 비밀번호",
+          "pin": "보안 PIN",
+          "device_id": "장치 ID",
+          "device_name": "장치 이름",
+          "region": "지역 (USA/CAN)"
+        }
+      },
+      "verify": {
+        "title": "장치 확인",
+        "description": "등록된 연락처로 전송된 6자리 인증 코드를 입력하세요.",
+        "data": {
+          "code": "인증 코드"
+        }
+      }
+    }
+  }
+}

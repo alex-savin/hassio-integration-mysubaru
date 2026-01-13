@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MySubaru Websocket",
+        "description": "Anslut till MySubaru websocket-tillägget och ange dina MySubaru-uppgifter.",
+        "data": {
+          "ws_url": "Websocket-URL",
+          "username": "MySubaru-användarnamn (e-post)",
+          "password": "MySubaru-lösenord",
+          "pin": "Säkerhets-PIN",
+          "device_id": "Enhets-ID",
+          "device_name": "Enhetsnamn",
+          "region": "Region (USA/CAN)"
+        }
+      },
+      "verify": {
+        "title": "Verifiera enhet",
+        "description": "Ange den 6-siffriga verifieringskoden som skickades till din registrerade kontakt.",
+        "data": {
+          "code": "Verifieringskod"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MySubaru Websocket",
+        "description": "Připojte se k doplňku MySubaru websocket a zadejte přihlašovací údaje MySubaru.",
+        "data": {
+          "ws_url": "URL Websocket",
+          "username": "Uživatelské jméno MySubaru (email)",
+          "password": "Heslo MySubaru",
+          "pin": "Bezpečnostní PIN",
+          "device_id": "ID zařízení",
+          "device_name": "Název zařízení",
+          "region": "Region (USA/CAN)"
+        }
+      },
+      "verify": {
+        "title": "Ověřit zařízení",
+        "description": "Zadejte 6místný ověřovací kód zaslaný na váš registrovaný kontakt.",
+        "data": {
+          "code": "Ověřovací kód"
+        }
+      }
+    }
+  }
+}

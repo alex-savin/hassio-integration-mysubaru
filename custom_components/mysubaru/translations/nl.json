@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MySubaru Websocket",
+        "description": "Maak verbinding met de MySubaru websocket add-on en voer je MySubaru inloggegevens in.",
+        "data": {
+          "ws_url": "Websocket URL",
+          "username": "MySubaru gebruikersnaam (e-mail)",
+          "password": "MySubaru wachtwoord",
+          "pin": "Beveiligings-PIN",
+          "device_id": "Apparaat-ID",
+          "device_name": "Apparaatnaam",
+          "region": "Regio (USA/CAN)"
+        }
+      },
+      "verify": {
+        "title": "Apparaat verifiëren",
+        "description": "Voer de 6-cijferige verificatiecode in die naar je geregistreerde contact is verzonden.",
+        "data": {
+          "code": "Verificatiecode"
+        }
+      }
+    }
+  }
+}

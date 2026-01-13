@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MySubaru Websocket",
+        "description": "连接到MySubaru websocket插件并提供MySubaru凭据。",
+        "data": {
+          "ws_url": "Websocket网址",
+          "username": "MySubaru用户名（电子邮件）",
+          "password": "MySubaru密码",
+          "pin": "安全PIN码",
+          "device_id": "设备ID",
+          "device_name": "设备名称",
+          "region": "地区（USA/CAN）"
+        }
+      },
+      "verify": {
+        "title": "验证设备",
+        "description": "输入发送到您注册联系人的6位验证码。",
+        "data": {
+          "code": "验证码"
+        }
+      }
+    }
+  }
+}
