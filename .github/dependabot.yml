@@ -10,16 +10,3 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
-
-  # Maintain Python dependencies (if requirements.txt exists)
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    commit-message:
-      prefix: "deps"
-    labels:
-      - "dependencies"
-      - "python"
-    # Only open PRs for security updates
-    open-pull-requests-limit: 5

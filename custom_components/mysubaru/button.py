@@ -29,20 +29,36 @@ class ButtonDescription:
 
 BUTTON_DESCRIPTIONS: List[ButtonDescription] = [
     ButtonDescription(key="lock", name="Lock Doors", icon="mdi:lock", action="lock"),
-    ButtonDescription(key="unlock", name="Unlock Doors", icon="mdi:lock-open", action="unlock"),
-    ButtonDescription(key="remote_start", name="Remote Start", icon="mdi:power", action="remote_start"),
     ButtonDescription(
-        key="remote_stop", name="Remote Stop", icon="mdi:stop-circle-outline", action="remote_stop"
+        key="unlock", name="Unlock Doors", icon="mdi:lock-open", action="unlock"
     ),
-    ButtonDescription(key="ev_charge", name="Start Charging", icon="mdi:ev-station", action="ev_charge"),
-    ButtonDescription(key="poll", name="Update Location", icon="mdi:crosshairs-gps", action="poll"),
+    ButtonDescription(
+        key="remote_start", name="Remote Start", icon="mdi:power", action="remote_start"
+    ),
+    ButtonDescription(
+        key="remote_stop",
+        name="Remote Stop",
+        icon="mdi:stop-circle-outline",
+        action="remote_stop",
+    ),
+    ButtonDescription(
+        key="ev_charge",
+        name="Start Charging",
+        icon="mdi:ev-station",
+        action="ev_charge",
+    ),
+    ButtonDescription(
+        key="poll", name="Update Location", icon="mdi:crosshairs-gps", action="poll"
+    ),
 ]
 
 
 def _supports_remote_start(vehicle: Dict[str, Any]) -> bool:
     features = vehicle.get("Features") or []
     subscriptions = vehicle.get("SubscriptionFeatures") or []
-    return "REMOTE" in subscriptions or any(f in features for f in ("RES", "RESCC", "RCC"))
+    return "REMOTE" in subscriptions or any(
+        f in features for f in ("RES", "RESCC", "RCC")
+    )
 
 
 async def async_setup_platform(
@@ -58,7 +74,10 @@ async def async_setup_platform(
         store: Dict[str, Any] = hass.data.get(DOMAIN, {})
         for vin, vehicle in store.get("vehicles", {}).items():
             for desc in BUTTON_DESCRIPTIONS:
-                if desc.action in {"remote_start", "remote_stop"} and not _supports_remote_start(vehicle):
+                if desc.action in {
+                    "remote_start",
+                    "remote_stop",
+                } and not _supports_remote_start(vehicle):
                     continue
                 if desc.key.startswith("ev_") and not vehicle.get("EV", False):
                     continue
@@ -84,7 +103,9 @@ async def async_setup_entry(
 class MySubaruButton(ButtonEntity):
     _attr_should_poll = False
 
-    def __init__(self, vin: str, vehicle: Dict[str, Any], description: ButtonDescription) -> None:
+    def __init__(
+        self, vin: str, vehicle: Dict[str, Any], description: ButtonDescription
+    ) -> None:
         self._vin = vin
         self._description = description
         base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
@@ -93,7 +114,9 @@ class MySubaruButton(ButtonEntity):
         self._attr_icon = description.icon
 
     async def async_added_to_hass(self) -> None:
-        self.async_on_remove(async_dispatcher_connect(self.hass, UPDATE_SIGNAL, self._handle_update))
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, UPDATE_SIGNAL, self._handle_update)
+        )
         self._handle_update()
 
     def _handle_update(self) -> None:

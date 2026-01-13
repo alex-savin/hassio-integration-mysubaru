@@ -10,7 +10,7 @@ HTTP_TIMEOUT = 30
 
 def get_lock_status(vehicle: Dict[str, Any]) -> bool | None:
     """Determine if vehicle is locked based on door lock states.
-    
+
     Returns:
         True if all doors are locked
         False if any door is unlocked
@@ -19,7 +19,7 @@ def get_lock_status(vehicle: Dict[str, Any]) -> bool | None:
     doors = vehicle.get("Doors", {}) or {}
     if not doors:
         return None
-    
+
     locks = []
     for door in doors.values():
         val = door.get("Lock")
@@ -29,7 +29,7 @@ def get_lock_status(vehicle: Dict[str, Any]) -> bool | None:
         if norm in {"UNKNOWN", "NOT_EQUIPPED"}:
             continue
         locks.append(norm)
-    
+
     if not locks:
         return None
     return all(lock == "LOCKED" for lock in locks)
@@ -37,7 +37,7 @@ def get_lock_status(vehicle: Dict[str, Any]) -> bool | None:
 
 def get_door_lock_states(vehicle: Dict[str, Any]) -> Dict[str, str]:
     """Get individual door lock states for display in entity attributes.
-    
+
     Returns a dict like:
         {
             "door_boot": "LOCKED",
@@ -49,7 +49,7 @@ def get_door_lock_states(vehicle: Dict[str, Any]) -> Dict[str, str]:
     """
     doors = vehicle.get("Doors", {}) or {}
     result: Dict[str, str] = {}
-    
+
     for name, door in doors.items():
         lock_val = door.get("Lock")
         if not lock_val:
@@ -58,5 +58,5 @@ def get_door_lock_states(vehicle: Dict[str, Any]) -> Dict[str, str]:
         if norm in {"UNKNOWN", "NOT_EQUIPPED"}:
             continue
         result[name] = norm
-    
+
     return result

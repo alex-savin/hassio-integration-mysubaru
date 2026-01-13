@@ -46,7 +46,9 @@ class MySubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     resp.raise_for_status()
                     return await resp.json()
 
-    async def _post_json(self, url: str, payload: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    async def _post_json(
+        self, url: str, payload: Dict[str, Any] | None = None
+    ) -> Dict[str, Any]:
         async with aiohttp.ClientSession() as session:
             with async_timeout.timeout(10):
                 async with session.post(url, json=payload) as resp:
@@ -88,10 +90,18 @@ class MySubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         return await self.async_step_verify()
                 else:
                     data = dict(user_input)
-                    return self.async_create_entry(title="MySubaru Websocket", data=data)
+                    return self.async_create_entry(
+                        title="MySubaru Websocket", data=data
+                    )
 
-        default_device_id = user_input.get(CONF_DEVICE_ID) if user_input else secrets.token_hex(16)
-        default_device_name = user_input.get(CONF_DEVICE_NAME) if user_input else "Hassio MySubaru Websocket Add-on"
+        default_device_id = (
+            user_input.get(CONF_DEVICE_ID) if user_input else secrets.token_hex(16)
+        )
+        default_device_name = (
+            user_input.get(CONF_DEVICE_NAME)
+            if user_input
+            else "Hassio MySubaru Websocket Add-on"
+        )
 
         data_schema = vol.Schema(
             {
@@ -101,10 +111,14 @@ class MySubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_PIN): str,
                 vol.Required(CONF_DEVICE_ID, default=default_device_id): str,
                 vol.Required(CONF_DEVICE_NAME, default=default_device_name): str,
-                vol.Optional(CONF_REGION, default=DEFAULT_REGION): vol.In(["USA", "CAN"]),
+                vol.Optional(CONF_REGION, default=DEFAULT_REGION): vol.In(
+                    ["USA", "CAN"]
+                ),
             }
         )
-        return self.async_show_form(step_id="user", data_schema=data_schema, errors=errors)
+        return self.async_show_form(
+            step_id="user", data_schema=data_schema, errors=errors
+        )
 
     async def async_step_verify(self, user_input=None):
         errors: Dict[str, str] = {}
@@ -121,4 +135,6 @@ class MySubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title="MySubaru Websocket", data=data)
 
         data_schema = vol.Schema({vol.Required("code"): str})
-        return self.async_show_form(step_id="verify", data_schema=data_schema, errors=errors)
+        return self.async_show_form(
+            step_id="verify", data_schema=data_schema, errors=errors
+        )

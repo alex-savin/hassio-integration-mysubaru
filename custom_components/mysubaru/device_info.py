@@ -107,14 +107,18 @@ def _detect_model_and_trim(model_code: str | None) -> Tuple[str | None, str | No
 
 
 def _coalesce_model(vehicle: Dict[str, Any]) -> str | None:
-    return vehicle.get("ModelName") or vehicle.get("CarName") or vehicle.get("CarNickname")
+    return (
+        vehicle.get("ModelName") or vehicle.get("CarName") or vehicle.get("CarNickname")
+    )
 
 
 def _coalesce_trim(vehicle: Dict[str, Any]) -> str | None:
     return vehicle.get("TrimName") or vehicle.get("Trim") or vehicle.get("ModelTrim")
 
 
-def build_device_info(vin: str, vehicle: Dict[str, Any], base_name: str) -> Dict[str, Any]:
+def build_device_info(
+    vin: str, vehicle: Dict[str, Any], base_name: str
+) -> Dict[str, Any]:
     model = _coalesce_model(vehicle)
     trim = _coalesce_trim(vehicle)
     detected_model, detected_trim = _detect_model_and_trim(vehicle.get("ModelCode"))

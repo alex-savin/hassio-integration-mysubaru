@@ -41,7 +41,10 @@ def _windows_open(vehicle: Dict[str, Any]) -> Optional[bool]:
     windows = vehicle.get("Windows", {}) or {}
     if not windows:
         return None
-    return any((w.get("Status") or "").upper() not in {"CLOSE", "CLOSED"} for w in windows.values())
+    return any(
+        (w.get("Status") or "").upper() not in {"CLOSE", "CLOSED"}
+        for w in windows.values()
+    )
 
 
 def _unlocked(vehicle: Dict[str, Any]) -> Optional[bool]:
@@ -127,7 +130,9 @@ async def async_setup_entry(
 class MySubaruBinarySensor(BinarySensorEntity):
     _attr_should_poll = False
 
-    def __init__(self, vin: str, vehicle: Dict[str, Any], description: BinarySensorDescription) -> None:
+    def __init__(
+        self, vin: str, vehicle: Dict[str, Any], description: BinarySensorDescription
+    ) -> None:
         self._vin = vin
         self._description = description
         self._attr_unique_id = f"{vin}-{description.key}"

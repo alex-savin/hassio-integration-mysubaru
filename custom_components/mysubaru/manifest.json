@@ -1,13 +1,13 @@
 {
   "domain": "mysubaru",
   "name": "MySubaru Websocket",
-  "version": "1.0.0",
+  "codeowners": ["@alex-savin"],
+  "config_flow": true,
   "documentation": "https://github.com/alex-savin/hassio-integration-mysubaru",
+  "iot_class": "local_push",
   "issue_tracker": "https://github.com/alex-savin/hassio-integration-mysubaru/issues",
   "requirements": [
     "websockets>=15.0.1,<17"
   ],
-  "codeowners": ["@alex-savin"],
-  "iot_class": "local_push",
-  "config_flow": true
+  "version": "1.0.0"
 }

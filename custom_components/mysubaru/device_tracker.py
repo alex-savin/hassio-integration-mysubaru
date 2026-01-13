@@ -56,7 +56,9 @@ class MySubaruTracker(TrackerEntity):
         self._attr_name = f"{name} Location"
 
     async def async_added_to_hass(self) -> None:
-        self.async_on_remove(async_dispatcher_connect(self.hass, UPDATE_SIGNAL, self._handle_update))
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, UPDATE_SIGNAL, self._handle_update)
+        )
         self._handle_update()
 
     def _handle_update(self) -> None:

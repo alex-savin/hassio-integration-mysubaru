@@ -64,7 +64,9 @@ class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
         if (last_state := await self.async_get_last_state()) is not None:
             self._restored_option = last_state.state
 
-        self.async_on_remove(async_dispatcher_connect(self.hass, UPDATE_SIGNAL, self._handle_update))
+        self.async_on_remove(
+            async_dispatcher_connect(self.hass, UPDATE_SIGNAL, self._handle_update)
+        )
         self._handle_update()
 
     def _handle_update(self) -> None:
@@ -107,7 +109,9 @@ class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
         self._attr_options = options
         self._attr_available = bool(options)
 
-        selected_store: Dict[str, str] = store.setdefault("selected_climate_profile", {})
+        selected_store: Dict[str, str] = store.setdefault(
+            "selected_climate_profile", {}
+        )
         stored = selected_store.get(self._vin)
 
         # Priority: 1) in-memory store, 2) restored state from disk, 3) first option
@@ -140,7 +144,9 @@ class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
         if option not in self._name_to_key:
             raise ValueError(f"Invalid climate profile: {option}")
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
-        selected_store: Dict[str, str] = store.setdefault("selected_climate_profile", {})
+        selected_store: Dict[str, str] = store.setdefault(
+            "selected_climate_profile", {}
+        )
         selected_store[self._vin] = self._name_to_key[option]
         self._attr_current_option = option
         self.hass.add_job(self.async_write_ha_state)

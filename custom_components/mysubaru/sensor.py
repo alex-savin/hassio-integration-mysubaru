@@ -82,7 +82,12 @@ def _tire_status(vehicle: Dict[str, Any]) -> tuple[Optional[str], Dict[str, Any]
             pressures[name] = None
 
     if not pressures:
-        return None, {"model": model, "recommended_min_psi": None, "recommended_max_psi": None, "pressures": {}}
+        return None, {
+            "model": model,
+            "recommended_min_psi": None,
+            "recommended_max_psi": None,
+            "pressures": {},
+        }
 
     recommended = None
     for key, rng in _TIRE_PRESSURE_RANGES_PSI.items():
@@ -216,7 +221,9 @@ async def async_setup_entry(
 class MySubaruSensor(SensorEntity):
     _attr_should_poll = False
 
-    def __init__(self, vin: str, vehicle: Dict[str, Any], description: SensorDescription) -> None:
+    def __init__(
+        self, vin: str, vehicle: Dict[str, Any], description: SensorDescription
+    ) -> None:
         self._vin = vin
         self._description = description
         self._attr_unique_id = f"{vin}-{description.key}"
