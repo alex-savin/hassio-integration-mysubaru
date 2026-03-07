@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "MySubaru Websocket",
-        "description": "Maak verbinding met de MySubaru websocket add-on en voer je MySubaru inloggegevens in.",
+        "description": "Maak verbinding met de MySubaru websocket app en voer je MySubaru inloggegevens in.",
         "data": {
           "ws_url": "Websocket URL",
           "username": "MySubaru gebruikersnaam (e-mail)",

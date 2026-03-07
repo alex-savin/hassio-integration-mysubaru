@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "MySubaru Websocket",
-        "description": "Verbinden Sie sich mit dem MySubaru Websocket-Add-on und geben Sie Ihre MySubaru-Anmeldeinformationen ein.",
+        "description": "Verbinden Sie sich mit der MySubaru Websocket-App und geben Sie Ihre MySubaru-Anmeldeinformationen ein.",
         "data": {
           "ws_url": "Websocket-URL",
           "username": "MySubaru Benutzername (E-Mail)",

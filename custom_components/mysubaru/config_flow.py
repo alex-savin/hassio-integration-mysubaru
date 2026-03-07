@@ -100,7 +100,7 @@ class MySubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         default_device_name = (
             user_input.get(CONF_DEVICE_NAME)
             if user_input
-            else "Hassio MySubaru Websocket Add-on"
+            else "Hassio MySubaru Websocket App"
         )
 
         data_schema = vol.Schema(

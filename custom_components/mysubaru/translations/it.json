@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "MySubaru Websocket",
-        "description": "Connetti all'add-on websocket MySubaru e fornisci le credenziali MySubaru.",
+        "description": "Connetti all'app websocket MySubaru e fornisci le credenziali MySubaru.",
         "data": {
           "ws_url": "URL Websocket",
           "username": "Nome utente MySubaru (email)",

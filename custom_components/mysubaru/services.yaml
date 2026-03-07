@@ -1,0 +1,452 @@
+get_trips:
+  name: Get Trips
+  description: Retrieve trip history for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_recalls:
+  name: Get Recalls
+  description: Retrieve recall information for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_warning_lights:
+  name: Get Warning Lights
+  description: Retrieve active warning lights for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_roadside_assistance:
+  name: Get Roadside Assistance Info
+  description: Retrieve roadside assistance information for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_model_info:
+  name: Get Model Info
+  description: Retrieve model, trim, and feature details for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_favorite_pois:
+  name: Get Favorite POIs
+  description: Retrieve saved favorite points of interest for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_valet_settings:
+  name: Get Valet Settings
+  description: Retrieve valet mode settings for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_geofence_settings:
+  name: Get GeoFence Settings
+  description: Retrieve geofence boundary alert settings for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_speedfence_settings:
+  name: Get Speed Fence Settings
+  description: Retrieve speed fence alert settings for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_curfew_settings:
+  name: Get Curfew Settings
+  description: Retrieve curfew alert settings for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+get_ev_charge_settings:
+  name: Get EV Charge Settings
+  description: Retrieve EV charging settings for a vehicle.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+
+send_poi:
+  name: Send POI
+  description: Send a point of interest to the vehicle navigation system.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    name:
+      name: Name
+      description: Name of the destination.
+      required: true
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: Latitude coordinate.
+      required: true
+      selector:
+        number:
+          min: -90
+          max: 90
+          step: 0.000001
+          mode: box
+    longitude:
+      name: Longitude
+      description: Longitude coordinate.
+      required: true
+      selector:
+        number:
+          min: -180
+          max: 180
+          step: 0.000001
+          mode: box
+    address:
+      name: Address
+      description: Street address (optional).
+      selector:
+        text:
+    city:
+      name: City
+      description: City (optional).
+      selector:
+        text:
+    state:
+      name: State
+      description: State (optional).
+      selector:
+        text:
+    zip:
+      name: ZIP
+      description: ZIP code (optional).
+      selector:
+        text:
+    category:
+      name: Category
+      description: POI category (optional).
+      selector:
+        text:
+
+save_favorite_poi:
+  name: Save Favorite POI
+  description: Save a point of interest as a favorite.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    name:
+      name: Name
+      description: Name of the destination.
+      required: true
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: Latitude coordinate.
+      required: true
+      selector:
+        number:
+          min: -90
+          max: 90
+          step: 0.000001
+          mode: box
+    longitude:
+      name: Longitude
+      description: Longitude coordinate.
+      required: true
+      selector:
+        number:
+          min: -180
+          max: 180
+          step: 0.000001
+          mode: box
+    address:
+      name: Address
+      description: Street address (optional).
+      selector:
+        text:
+    city:
+      name: City
+      description: City (optional).
+      selector:
+        text:
+    state:
+      name: State
+      description: State (optional).
+      selector:
+        text:
+    zip:
+      name: ZIP
+      description: ZIP code (optional).
+      selector:
+        text:
+    category:
+      name: Category
+      description: POI category (optional).
+      selector:
+        text:
+
+set_geofence:
+  name: Set GeoFence
+  description: Create a geofence boundary alert zone.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: Center latitude.
+      required: true
+      selector:
+        number:
+          min: -90
+          max: 90
+          step: 0.000001
+          mode: box
+    longitude:
+      name: Longitude
+      description: Center longitude.
+      required: true
+      selector:
+        number:
+          min: -180
+          max: 180
+          step: 0.000001
+          mode: box
+    radius:
+      name: Radius
+      description: Fence radius in meters.
+      required: true
+      selector:
+        number:
+          min: 100
+          max: 50000
+          step: 100
+          mode: box
+    name:
+      name: Name
+      description: Name of the geofence.
+      required: true
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: Whether the geofence is active.
+      default: true
+      selector:
+        boolean:
+    entry_alert:
+      name: Entry Alert
+      description: Alert when vehicle enters the zone.
+      default: true
+      selector:
+        boolean:
+    exit_alert:
+      name: Exit Alert
+      description: Alert when vehicle exits the zone.
+      default: true
+      selector:
+        boolean:
+
+set_speedfence:
+  name: Set Speed Fence
+  description: Set a speed limit alert.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    speed_limit:
+      name: Speed Limit
+      description: Speed limit value.
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 200
+          step: 1
+          mode: box
+    enabled:
+      name: Enabled
+      description: Whether the speed fence is active.
+      default: true
+      selector:
+        boolean:
+    persistent:
+      name: Persistent
+      description: Keep the speed fence active after trip ends.
+      default: false
+      selector:
+        boolean:
+
+set_curfew:
+  name: Set Curfew
+  description: Set a curfew alert schedule.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    start_time:
+      name: Start Time
+      description: Curfew start time (HH:MM format).
+      required: true
+      selector:
+        text:
+    end_time:
+      name: End Time
+      description: Curfew end time (HH:MM format).
+      required: true
+      selector:
+        text:
+    days_of_week:
+      name: Days of Week
+      description: Days of the week (0=Sun, 1=Mon, ... 6=Sat).
+      required: true
+      selector:
+        object:
+    enabled:
+      name: Enabled
+      description: Whether the curfew is active.
+      default: true
+      selector:
+        boolean:
+
+delete_trip:
+  name: Delete Trip
+  description: Delete a recorded trip.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    trip_id:
+      name: Trip ID
+      description: The trip identifier to delete.
+      required: true
+      selector:
+        text:
+
+delete_geofence:
+  name: Delete GeoFence
+  description: Delete a geofence boundary alert zone.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    fence_id:
+      name: Fence ID
+      description: The geofence identifier to delete.
+      required: true
+      selector:
+        text:
+
+request_roadside_assistance:
+  name: Request Roadside Assistance
+  description: Submit a request for roadside assistance.
+  fields:
+    vin:
+      name: VIN
+      description: Vehicle identification number.
+      required: true
+      selector:
+        text:
+    latitude:
+      name: Latitude
+      description: Current latitude.
+      required: true
+      selector:
+        number:
+          min: -90
+          max: 90
+          step: 0.000001
+          mode: box
+    longitude:
+      name: Longitude
+      description: Current longitude.
+      required: true
+      selector:
+        number:
+          min: -180
+          max: 180
+          step: 0.000001
+          mode: box
+    description:
+      name: Description
+      description: Description of the issue.
+      default: ""
+      selector:
+        text:
+
+refresh_vehicles:
+  name: Refresh Vehicles
+  description: Force refresh the vehicle list from the Subaru API.

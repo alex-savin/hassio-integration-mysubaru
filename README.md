@@ -3,26 +3,26 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![Validate](https://github.com/alex-savin/hassio-integration-mysubaru/actions/workflows/validate.yml/badge.svg)](https://github.com/alex-savin/hassio-integration-mysubaru/actions/workflows/validate.yml)
 
-Listener that keeps the latest payload from the add-on websocket stream, fires `mysubaru_updated` events, and exposes basic sensors and binary sensors per vehicle.
+Home Assistant integration that connects to the MySubaru Websocket App, receives real-time vehicle data, and exposes comprehensive entities and services for monitoring and controlling your Subaru.
 
 ## Prerequisites
 
-This integration requires the **[MySubaru Websocket Add-on](https://github.com/alex-savin/hassio-apps/tree/main/mysubaru-ws)** to be installed and running.
+This integration requires the **[MySubaru Websocket App](https://github.com/alex-savin/hassio-apps/tree/main/mysubaru-ws)** to be installed and running.
 
-The add-on connects to MySubaru's servers, authenticates with your credentials, and exposes vehicle status via a local websocket. This integration then connects to that websocket to create Home Assistant entities.
+The app connects to MySubaru's servers, authenticates with your credentials, and exposes vehicle status via a local websocket. This integration then connects to that websocket to create Home Assistant entities.
 
-### Add-on Installation
+### App Installation
 
-1. Add the add-on repository to Home Assistant:
+1. Add the app repository to Home Assistant:
    - Go to **Settings → Add-ons → Add-on Store**
    - Click the three dots (⋮) in the top right → **Repositories**
    - Add: `https://github.com/alex-savin/hassio-apps`
 2. Find and install **MySubaru Websocket**
-3. Configure the add-on with your MySubaru credentials
-4. Start the add-on
+3. Configure the app with your MySubaru credentials
+4. Start the app
 5. Note the websocket URL (typically `ws://homeassistant.local:8080/ws` or `ws://localhost:8080/ws`)
 
-For detailed add-on configuration and endpoints, see the [add-on documentation](https://github.com/alex-savin/hassio-apps/tree/main/mysubaru-ws).
+For detailed app configuration and endpoints, see the [app documentation](https://github.com/alex-savin/hassio-apps/tree/main/mysubaru-ws).
 
 ## Install
 
@@ -47,11 +47,87 @@ For detailed add-on configuration and endpoints, see the [add-on documentation](
 4. Sensors/binary sensors will appear per vehicle once a payload is received. Listen for the `mysubaru_updated` event to inspect raw payloads.
 
 ### Entities (per vehicle)
-- Sensors: odometer miles, fuel level %, range miles, average MPG, EV state-of-charge %, EV range miles, engine state.
-- Binary sensors: doors open, windows open, locked.
- - Locks: aggregated door locks with remote lock/unlock.
- - Device tracker: GPS location/heading.
-- Climate: status-only HVAC mode/action based on ignition state.
+
+#### Sensors
+- Odometer (miles)
+- Fuel Level (%)
+- Range (km)
+- Average MPG
+- EV State of Charge (%) — EV only
+- EV Range (miles) — EV only
+- Tire Pressure Status (with per-tire PSI in attributes)
+
+#### Binary Sensors
+- Doors Open (with per-door states in attributes)
+- Windows Open (with per-window states in attributes)
+- Locked (with per-door lock states in attributes)
+- Troubles (active trouble codes with descriptions)
+
+#### Lock
+- Aggregated door lock with remote lock/unlock commands
+
+#### Device Tracker
+- GPS location with heading
+
+#### Select
+- Climate Profile selector (user and factory presets, persisted across restarts)
+
+#### Buttons
+- Lock / Unlock Doors
+- Remote Start / Remote Stop
+- Start Charging (EV only)
+- Update Location (forced GPS poll)
+- Horn Start / Horn Stop
+- Lights Start / Lights Stop
+- Cancel Lock / Cancel Unlock / Cancel Engine Start / Cancel Lights / Cancel Horn & Lights
+- Start Trip Log / Stop Trip Log
+
+#### Switches
+- Valet Mode (on/off with status polling)
+- GeoFence Alerts (activate/deactivate)
+- Speed Fence Alerts (activate/deactivate)
+- Curfew Alerts (activate/deactivate)
+
+### Services
+
+Parameterized commands and data queries are exposed as HA services under `mysubaru.*`:
+
+| Service | Description |
+|---------|-------------|
+| `mysubaru.get_trips` | Retrieve trip history |
+| `mysubaru.get_recalls` | Retrieve recall information |
+| `mysubaru.get_warning_lights` | Retrieve active warning lights |
+| `mysubaru.get_roadside_assistance` | Retrieve roadside assistance info |
+| `mysubaru.get_model_info` | Retrieve model, trim, and features |
+| `mysubaru.get_favorite_pois` | Retrieve saved favorite POIs |
+| `mysubaru.get_valet_settings` | Retrieve valet mode settings |
+| `mysubaru.get_geofence_settings` | Retrieve geofence alert settings |
+| `mysubaru.get_speedfence_settings` | Retrieve speed fence settings |
+| `mysubaru.get_curfew_settings` | Retrieve curfew alert settings |
+| `mysubaru.get_ev_charge_settings` | Retrieve EV charging settings |
+| `mysubaru.send_poi` | Send a POI to vehicle navigation |
+| `mysubaru.save_favorite_poi` | Save a favorite POI |
+| `mysubaru.set_geofence` | Create a geofence boundary alert |
+| `mysubaru.set_speedfence` | Set a speed limit alert |
+| `mysubaru.set_curfew` | Set a curfew alert schedule |
+| `mysubaru.delete_trip` | Delete a recorded trip |
+| `mysubaru.delete_geofence` | Delete a geofence zone |
+| `mysubaru.request_roadside_assistance` | Request roadside help |
+| `mysubaru.refresh_vehicles` | Force refresh vehicle list |
+
+Data query services fire HA events (e.g. `mysubaru_trips`, `mysubaru_recalls`) so automations can consume results.
+
+### Events
+
+| Event | Description |
+|-------|-------------|
+| `mysubaru_updated` | Fired on each vehicle state update |
+| `mysubaru_trouble` | Fired when trouble codes are added/cleared |
+| `mysubaru_command_status` | Fired on command status changes |
+| `mysubaru_trips` | Fired with trip data from `get_trips` service |
+| `mysubaru_recalls` | Fired with recall data from `get_recalls` service |
+| `mysubaru_warning_lights` | Fired with warning light data |
+| `mysubaru_*_settings` | Fired with settings data from `get_*_settings` services |
 
 ## Automation examples
 
@@ -335,7 +411,112 @@ Use Home Assistant Voice PE (Assist) to ask the user if they want to lock the ca
   mode: single
 ```
 
+### Flash lights and honk when you can't find your car
+```yaml
+alias: Subaru find my car
+description: Press a button in HA to flash lights and honk the horn to locate your car
+trigger:
+  - platform: event
+    event_type: mobile_app_notification_action
+    event_data:
+      action: FIND_SUBARU
+action:
+  - service: button.press
+    target:
+      entity_id: button.your_car_horn_start
+  - service: button.press
+    target:
+      entity_id: button.your_car_lights_start
+  - delay: "00:00:05"
+  - service: button.press
+    target:
+      entity_id: button.your_car_horn_stop
+  - service: button.press
+    target:
+      entity_id: button.your_car_lights_stop
+mode: single
+```
+
+### Enable valet mode when lending the car
+```yaml
+alias: Subaru valet mode on guest departure
+description: Turn on valet mode when a guest borrows the car
+trigger:
+  - platform: state
+    entity_id: input_boolean.car_loaned_to_guest
+    to: "on"
+action:
+  - service: switch.turn_on
+    target:
+      entity_id: switch.your_car_valet_mode
+  - service: notify.mobile_app_your_phone
+    data:
+      title: "🚗 Valet Mode Active"
+      message: "Valet mode has been activated on your Subaru."
+mode: single
+```
+
+### Send destination to vehicle nav before leaving
+```yaml
+alias: Subaru send work address to nav
+description: Send your work address to the vehicle navigation
+trigger:
+  - platform: time
+    at: "07:30:00"
+condition:
+  - condition: state
+    entity_id: person.alex
+    state: "home"
+action:
+  - service: mysubaru.send_poi
+    data:
+      vin: "JF2ABCDE1234567890"
+      name: "Work"
+      latitude: 37.7749
+      longitude: -122.4194
+      address: "123 Market St"
+      city: "San Francisco"
+      state: "CA"
+mode: single
+```
+
+### Check for open recalls weekly
+```yaml
+alias: Subaru weekly recall check
+description: Check for open recalls every Monday
+trigger:
+  - platform: time
+    at: "09:00:00"
+condition:
+  - condition: time
+    weekday:
+      - mon
+action:
+  - service: mysubaru.get_recalls
+    data:
+      vin: "JF2ABCDE1234567890"
+automation: []
+```
+
+Listen for the result event:
+
+```yaml
+alias: Notify on open recalls
+trigger:
+  - platform: event
+    event_type: mysubaru_recalls
+action:
+  - condition: template
+    value_template: "{{ trigger.event.data.recalls | length > 0 }}"
+  - service: notify.mobile_app_your_phone
+    data:
+      title: "🔧 Subaru Recall Notice"
+      message: "{{ trigger.event.data.recalls | length }} open recall(s) found for your vehicle."
+```
+
 ## Notes
-- Add-on config no longer collects credentials; the config flow sends them to the websocket server during setup.
-- No entities are created yet; this is scaffolding to build sensors from streamed data.
-- Reconnects automatically every 10 seconds on failure.
+- App config no longer collects credentials; the config flow sends them to the websocket server during setup.
+- Entities are created dynamically as vehicles are discovered from the websocket stream.
+- Reconnects automatically every 10 seconds on connection failure.
+- Switch entities poll their initial status from the server on setup.
+- Climate profile selection is persisted across HA restarts using `RestoreEntity`.
