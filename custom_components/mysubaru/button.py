@@ -55,7 +55,10 @@ BUTTON_DESCRIPTIONS: List[ButtonDescription] = [
         key="horn_start", name="Horn Start", icon="mdi:bullhorn", action="horn_start"
     ),
     ButtonDescription(
-        key="horn_stop", name="Horn Stop", icon="mdi:bullhorn-outline", action="horn_stop"
+        key="horn_stop",
+        name="Horn Stop",
+        icon="mdi:bullhorn-outline",
+        action="horn_stop",
     ),
     ButtonDescription(
         key="lights_start",

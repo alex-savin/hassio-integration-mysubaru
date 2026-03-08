@@ -143,7 +143,7 @@ send_poi:
         number:
           min: -90
           max: 90
-          step: 0.000001
+          step: "any"
           mode: box
     longitude:
       name: Longitude
@@ -153,7 +153,7 @@ send_poi:
         number:
           min: -180
           max: 180
-          step: 0.000001
+          step: "any"
           mode: box
     address:
       name: Address
@@ -205,7 +205,7 @@ save_favorite_poi:
         number:
           min: -90
           max: 90
-          step: 0.000001
+          step: "any"
           mode: box
     longitude:
       name: Longitude
@@ -215,7 +215,7 @@ save_favorite_poi:
         number:
           min: -180
           max: 180
-          step: 0.000001
+          step: "any"
           mode: box
     address:
       name: Address
@@ -261,7 +261,7 @@ set_geofence:
         number:
           min: -90
           max: 90
-          step: 0.000001
+          step: "any"
           mode: box
     longitude:
       name: Longitude
@@ -271,7 +271,7 @@ set_geofence:
         number:
           min: -180
           max: 180
-          step: 0.000001
+          step: "any"
           mode: box
     radius:
       name: Radius
@@ -428,7 +428,7 @@ request_roadside_assistance:
         number:
           min: -90
           max: 90
-          step: 0.000001
+          step: "any"
           mode: box
     longitude:
       name: Longitude
@@ -438,7 +438,7 @@ request_roadside_assistance:
         number:
           min: -180
           max: 180
-          step: 0.000001
+          step: "any"
           mode: box
     description:
       name: Description
