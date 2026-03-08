@@ -37,7 +37,15 @@ from .helpers import HTTP_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor", "binary_sensor", "device_tracker", "button", "select", "lock", "switch"]
+PLATFORMS = [
+    "sensor",
+    "binary_sensor",
+    "device_tracker",
+    "button",
+    "select",
+    "lock",
+    "switch",
+]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -317,7 +325,9 @@ def _register_services(hass: HomeAssistant, base_http: str) -> None:
     async def handle_get_warning_lights(call: ServiceCall) -> None:
         vin = call.data["vin"]
         data = await _get(f"{base_http}/vehicle/{vin}/warning_lights")
-        hass.bus.async_fire(f"{DOMAIN}_warning_lights", {"vin": vin, "warning_lights": data})
+        hass.bus.async_fire(
+            f"{DOMAIN}_warning_lights", {"vin": vin, "warning_lights": data}
+        )
 
     async def handle_get_roadside_assistance(call: ServiceCall) -> None:
         vin = call.data["vin"]
@@ -342,12 +352,16 @@ def _register_services(hass: HomeAssistant, base_http: str) -> None:
     async def handle_get_geofence_settings(call: ServiceCall) -> None:
         vin = call.data["vin"]
         data = await _get(f"{base_http}/vehicle/{vin}/geofence_settings")
-        hass.bus.async_fire(f"{DOMAIN}_geofence_settings", {"vin": vin, "settings": data})
+        hass.bus.async_fire(
+            f"{DOMAIN}_geofence_settings", {"vin": vin, "settings": data}
+        )
 
     async def handle_get_speedfence_settings(call: ServiceCall) -> None:
         vin = call.data["vin"]
         data = await _get(f"{base_http}/vehicle/{vin}/speedfence_settings")
-        hass.bus.async_fire(f"{DOMAIN}_speedfence_settings", {"vin": vin, "settings": data})
+        hass.bus.async_fire(
+            f"{DOMAIN}_speedfence_settings", {"vin": vin, "settings": data}
+        )
 
     async def handle_get_curfew_settings(call: ServiceCall) -> None:
         vin = call.data["vin"]
@@ -357,7 +371,9 @@ def _register_services(hass: HomeAssistant, base_http: str) -> None:
     async def handle_get_ev_charge_settings(call: ServiceCall) -> None:
         vin = call.data["vin"]
         data = await _get(f"{base_http}/vehicle/{vin}/ev_charge_settings")
-        hass.bus.async_fire(f"{DOMAIN}_ev_charge_settings", {"vin": vin, "settings": data})
+        hass.bus.async_fire(
+            f"{DOMAIN}_ev_charge_settings", {"vin": vin, "settings": data}
+        )
 
     # ── Parameterized command services ──────────────────────────────────
 
@@ -419,11 +435,16 @@ def _register_services(hass: HomeAssistant, base_http: str) -> None:
 
     async def handle_delete_trip(call: ServiceCall) -> None:
         vin = call.data["vin"]
-        await _post(f"{base_http}/vehicle/{vin}/delete_trip", {"trip_id": call.data["trip_id"]})
+        await _post(
+            f"{base_http}/vehicle/{vin}/delete_trip", {"trip_id": call.data["trip_id"]}
+        )
 
     async def handle_delete_geofence(call: ServiceCall) -> None:
         vin = call.data["vin"]
-        await _post(f"{base_http}/vehicle/{vin}/delete_geofence", {"fence_id": call.data["fence_id"]})
+        await _post(
+            f"{base_http}/vehicle/{vin}/delete_geofence",
+            {"fence_id": call.data["fence_id"]},
+        )
 
     async def handle_request_roadside(call: ServiceCall) -> None:
         vin = call.data["vin"]
@@ -443,102 +464,159 @@ def _register_services(hass: HomeAssistant, base_http: str) -> None:
 
     svc.async_register(DOMAIN, "get_trips", handle_get_trips, schema=VIN_SCHEMA)
     svc.async_register(DOMAIN, "get_recalls", handle_get_recalls, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_warning_lights", handle_get_warning_lights, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_roadside_assistance", handle_get_roadside_assistance, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_model_info", handle_get_model_info, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_favorite_pois", handle_get_favorite_pois, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_valet_settings", handle_get_valet_settings, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_geofence_settings", handle_get_geofence_settings, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_speedfence_settings", handle_get_speedfence_settings, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_curfew_settings", handle_get_curfew_settings, schema=VIN_SCHEMA)
-    svc.async_register(DOMAIN, "get_ev_charge_settings", handle_get_ev_charge_settings, schema=VIN_SCHEMA)
-
     svc.async_register(
-        DOMAIN, "send_poi", handle_send_poi,
-        schema=vol.Schema({
-            vol.Required("vin"): str,
-            vol.Required("name"): str,
-            vol.Required("latitude"): vol.Coerce(float),
-            vol.Required("longitude"): vol.Coerce(float),
-            vol.Optional("address"): str,
-            vol.Optional("city"): str,
-            vol.Optional("state"): str,
-            vol.Optional("zip"): str,
-            vol.Optional("category"): str,
-        }),
+        DOMAIN, "get_warning_lights", handle_get_warning_lights, schema=VIN_SCHEMA
+    )
+    svc.async_register(
+        DOMAIN,
+        "get_roadside_assistance",
+        handle_get_roadside_assistance,
+        schema=VIN_SCHEMA,
+    )
+    svc.async_register(
+        DOMAIN, "get_model_info", handle_get_model_info, schema=VIN_SCHEMA
+    )
+    svc.async_register(
+        DOMAIN, "get_favorite_pois", handle_get_favorite_pois, schema=VIN_SCHEMA
+    )
+    svc.async_register(
+        DOMAIN, "get_valet_settings", handle_get_valet_settings, schema=VIN_SCHEMA
+    )
+    svc.async_register(
+        DOMAIN, "get_geofence_settings", handle_get_geofence_settings, schema=VIN_SCHEMA
+    )
+    svc.async_register(
+        DOMAIN,
+        "get_speedfence_settings",
+        handle_get_speedfence_settings,
+        schema=VIN_SCHEMA,
+    )
+    svc.async_register(
+        DOMAIN, "get_curfew_settings", handle_get_curfew_settings, schema=VIN_SCHEMA
+    )
+    svc.async_register(
+        DOMAIN,
+        "get_ev_charge_settings",
+        handle_get_ev_charge_settings,
+        schema=VIN_SCHEMA,
     )
 
     svc.async_register(
-        DOMAIN, "save_favorite_poi", handle_save_favorite_poi,
-        schema=vol.Schema({
-            vol.Required("vin"): str,
-            vol.Required("name"): str,
-            vol.Required("latitude"): vol.Coerce(float),
-            vol.Required("longitude"): vol.Coerce(float),
-            vol.Optional("address"): str,
-            vol.Optional("city"): str,
-            vol.Optional("state"): str,
-            vol.Optional("zip"): str,
-            vol.Optional("category"): str,
-        }),
+        DOMAIN,
+        "send_poi",
+        handle_send_poi,
+        schema=vol.Schema(
+            {
+                vol.Required("vin"): str,
+                vol.Required("name"): str,
+                vol.Required("latitude"): vol.Coerce(float),
+                vol.Required("longitude"): vol.Coerce(float),
+                vol.Optional("address"): str,
+                vol.Optional("city"): str,
+                vol.Optional("state"): str,
+                vol.Optional("zip"): str,
+                vol.Optional("category"): str,
+            }
+        ),
     )
 
     svc.async_register(
-        DOMAIN, "set_geofence", handle_set_geofence,
-        schema=vol.Schema({
-            vol.Required("vin"): str,
-            vol.Required("latitude"): vol.Coerce(float),
-            vol.Required("longitude"): vol.Coerce(float),
-            vol.Required("radius"): int,
-            vol.Required("name"): str,
-            vol.Optional("enabled", default=True): bool,
-            vol.Optional("entry_alert", default=True): bool,
-            vol.Optional("exit_alert", default=True): bool,
-        }),
+        DOMAIN,
+        "save_favorite_poi",
+        handle_save_favorite_poi,
+        schema=vol.Schema(
+            {
+                vol.Required("vin"): str,
+                vol.Required("name"): str,
+                vol.Required("latitude"): vol.Coerce(float),
+                vol.Required("longitude"): vol.Coerce(float),
+                vol.Optional("address"): str,
+                vol.Optional("city"): str,
+                vol.Optional("state"): str,
+                vol.Optional("zip"): str,
+                vol.Optional("category"): str,
+            }
+        ),
     )
 
     svc.async_register(
-        DOMAIN, "set_speedfence", handle_set_speedfence,
-        schema=vol.Schema({
-            vol.Required("vin"): str,
-            vol.Required("speed_limit"): int,
-            vol.Optional("enabled", default=True): bool,
-            vol.Optional("persistent", default=False): bool,
-        }),
+        DOMAIN,
+        "set_geofence",
+        handle_set_geofence,
+        schema=vol.Schema(
+            {
+                vol.Required("vin"): str,
+                vol.Required("latitude"): vol.Coerce(float),
+                vol.Required("longitude"): vol.Coerce(float),
+                vol.Required("radius"): int,
+                vol.Required("name"): str,
+                vol.Optional("enabled", default=True): bool,
+                vol.Optional("entry_alert", default=True): bool,
+                vol.Optional("exit_alert", default=True): bool,
+            }
+        ),
     )
 
     svc.async_register(
-        DOMAIN, "set_curfew", handle_set_curfew,
-        schema=vol.Schema({
-            vol.Required("vin"): str,
-            vol.Required("start_time"): str,
-            vol.Required("end_time"): str,
-            vol.Required("days_of_week"): [int],
-            vol.Optional("enabled", default=True): bool,
-        }),
+        DOMAIN,
+        "set_speedfence",
+        handle_set_speedfence,
+        schema=vol.Schema(
+            {
+                vol.Required("vin"): str,
+                vol.Required("speed_limit"): int,
+                vol.Optional("enabled", default=True): bool,
+                vol.Optional("persistent", default=False): bool,
+            }
+        ),
     )
 
     svc.async_register(
-        DOMAIN, "delete_trip", handle_delete_trip,
+        DOMAIN,
+        "set_curfew",
+        handle_set_curfew,
+        schema=vol.Schema(
+            {
+                vol.Required("vin"): str,
+                vol.Required("start_time"): str,
+                vol.Required("end_time"): str,
+                vol.Required("days_of_week"): [int],
+                vol.Optional("enabled", default=True): bool,
+            }
+        ),
+    )
+
+    svc.async_register(
+        DOMAIN,
+        "delete_trip",
+        handle_delete_trip,
         schema=vol.Schema({vol.Required("vin"): str, vol.Required("trip_id"): str}),
     )
 
     svc.async_register(
-        DOMAIN, "delete_geofence", handle_delete_geofence,
+        DOMAIN,
+        "delete_geofence",
+        handle_delete_geofence,
         schema=vol.Schema({vol.Required("vin"): str, vol.Required("fence_id"): str}),
     )
 
     svc.async_register(
-        DOMAIN, "request_roadside_assistance", handle_request_roadside,
-        schema=vol.Schema({
-            vol.Required("vin"): str,
-            vol.Required("latitude"): vol.Coerce(float),
-            vol.Required("longitude"): vol.Coerce(float),
-            vol.Optional("description", default=""): str,
-        }),
+        DOMAIN,
+        "request_roadside_assistance",
+        handle_request_roadside,
+        schema=vol.Schema(
+            {
+                vol.Required("vin"): str,
+                vol.Required("latitude"): vol.Coerce(float),
+                vol.Required("longitude"): vol.Coerce(float),
+                vol.Optional("description", default=""): str,
+            }
+        ),
     )
 
-    svc.async_register(DOMAIN, "refresh_vehicles", handle_refresh_vehicles, schema=vol.Schema({}))
+    svc.async_register(
+        DOMAIN, "refresh_vehicles", handle_refresh_vehicles, schema=vol.Schema({})
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
