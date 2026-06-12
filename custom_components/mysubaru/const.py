@@ -1,6 +1,6 @@
 DOMAIN = "mysubaru"
 CONF_WS_URL = "ws_url"
-DEFAULT_WS_URL = "ws://homeassistant.local:8080/ws"
+DEFAULT_WS_URL = "ws://a06ed963-mysubaru-ws:8080/ws"
 RECONNECT_DELAY = 10
 UPDATE_SIGNAL = "mysubaru_update"
 CONF_USERNAME = "username"
