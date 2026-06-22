@@ -4,8 +4,55 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+import aiohttp
+import async_timeout
+
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
 # Default timeout for HTTP requests in seconds
 HTTP_TIMEOUT = 30
+
+
+async def async_api_call(
+    hass: HomeAssistant,
+    url: str,
+    *,
+    method: str = "post",
+    payload: Any = None,
+    error_context: str = "Request",
+) -> Dict[str, Any]:
+    """Call the MySubaru bridge using Home Assistant's shared aiohttp session.
+
+    Returns the parsed JSON body, or an empty dict when the body is empty or
+    not valid JSON. Raises ``HomeAssistantError`` on timeout, transport error,
+    or any HTTP status >= 400.
+    """
+    session = async_get_clientsession(hass)
+    try:
+        async with async_timeout.timeout(HTTP_TIMEOUT):
+            if method == "get":
+                resp = await session.get(url)
+            elif payload is not None:
+                resp = await session.post(url, json=payload)
+            else:
+                resp = await session.post(url)
+            if resp.status >= 400:
+                detail = await resp.text()
+                raise HomeAssistantError(
+                    f"{error_context} failed ({resp.status}): {detail or 'unknown error'}"
+                )
+            try:
+                return await resp.json(content_type=None)
+            except ValueError:
+                return {}
+    except TimeoutError as err:
+        raise HomeAssistantError(
+            f"{error_context} timed out after {HTTP_TIMEOUT}s"
+        ) from err
+    except aiohttp.ClientError as err:
+        raise HomeAssistantError(f"{error_context} failed: {err}") from err
 
 
 def get_lock_status(vehicle: Dict[str, Any]) -> bool | None:

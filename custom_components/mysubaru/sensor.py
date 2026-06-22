@@ -220,14 +220,16 @@ async def async_setup_entry(
 
 class MySubaruSensor(SensorEntity):
     _attr_should_poll = False
+    _attr_has_entity_name = True
 
     def __init__(
         self, vin: str, vehicle: Dict[str, Any], description: SensorDescription
     ) -> None:
         self._vin = vin
         self._description = description
+        self._base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
         self._attr_unique_id = f"{vin}-{description.key}"
-        self._attr_name = f"{vehicle.get('CarNickname') or vehicle.get('CarName') or vin} {description.name}"
+        self._attr_name = description.name
         self._attr_icon = description.icon
         self._attr_native_unit_of_measurement = description.unit
         self._attr_entity_category = description.entity_category
@@ -245,7 +247,7 @@ class MySubaruSensor(SensorEntity):
         vehicle = store.get("vehicles", {}).get(self._vin)
         if vehicle is None:
             self._attr_available = False
-            self.hass.add_job(self.async_write_ha_state)
+            self.async_write_ha_state()
             return
 
         self._attr_available = True
@@ -262,11 +264,10 @@ class MySubaruSensor(SensorEntity):
             self._attr_native_value = self._description.value_fn(vehicle)
 
         self._attr_extra_state_attributes = extra
-        self.hass.add_job(self.async_write_ha_state)
+        self.async_write_ha_state()
 
     @property
     def device_info(self):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin, {})
-        name = self.name.split(self._description.name)[0].strip()
-        return build_device_info(self._vin, vehicle, name)
+        return build_device_info(self._vin, vehicle, self._base_name)

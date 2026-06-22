@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from homeassistant.components.device_tracker.config_entry import TrackerEntity
+from homeassistant.components.device_tracker import TrackerEntity
 from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -48,12 +48,13 @@ async def async_setup_entry(
 class MySubaruTracker(TrackerEntity):
     _attr_should_poll = False
     _attr_source_type = SourceType.GPS
+    _attr_has_entity_name = True
 
     def __init__(self, vin: str, vehicle: Dict[str, Any]) -> None:
         self._vin = vin
-        name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
+        self._base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
         self._attr_unique_id = f"{vin}-tracker"
-        self._attr_name = f"{name} Location"
+        self._attr_name = "Location"
 
     async def async_added_to_hass(self) -> None:
         self.async_on_remove(
@@ -66,12 +67,17 @@ class MySubaruTracker(TrackerEntity):
         vehicle = store.get("vehicles", {}).get(self._vin)
         if vehicle is None:
             self._attr_available = False
-            self.hass.add_job(self.async_write_ha_state)
+            self.async_write_ha_state()
             return
 
         geo = vehicle.get("GeoLocation", {}) or {}
-        lat: Optional[float] = geo.get("Latitude") or geo.get("latitude")
-        lon: Optional[float] = geo.get("Longitude") or geo.get("longitude")
+        # Use explicit None checks so a legitimate 0.0 coordinate is preserved.
+        lat: Optional[float] = geo.get("Latitude")
+        if lat is None:
+            lat = geo.get("latitude")
+        lon: Optional[float] = geo.get("Longitude")
+        if lon is None:
+            lon = geo.get("longitude")
         heading = geo.get("Heading") if "Heading" in geo else geo.get("heading")
 
         self._attr_available = lat is not None and lon is not None
@@ -82,7 +88,7 @@ class MySubaruTracker(TrackerEntity):
             "heading": heading,
             "timestamp": store.get("timestamp"),
         }
-        self.hass.add_job(self.async_write_ha_state)
+        self.async_write_ha_state()
 
     @property
     def icon(self) -> str:
@@ -95,5 +101,4 @@ class MySubaruTracker(TrackerEntity):
     def device_info(self):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin, {})
-        base_name = self.name.replace(" Location", "")
-        return build_device_info(self._vin, vehicle, base_name)
+        return build_device_info(self._vin, vehicle, self._base_name)

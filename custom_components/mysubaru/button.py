@@ -5,18 +5,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-import async_timeout
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import DOMAIN, UPDATE_SIGNAL
 from .device_info import build_device_info
-from .helpers import HTTP_TIMEOUT
+from .helpers import async_api_call
 
 
 @dataclass
@@ -168,15 +166,16 @@ async def async_setup_entry(
 
 class MySubaruButton(ButtonEntity):
     _attr_should_poll = False
+    _attr_has_entity_name = True
 
     def __init__(
         self, vin: str, vehicle: Dict[str, Any], description: ButtonDescription
     ) -> None:
         self._vin = vin
         self._description = description
-        base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
+        self._base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
         self._attr_unique_id = f"{vin}-{description.key}"
-        self._attr_name = f"{base_name} {description.name}"
+        self._attr_name = description.name
         self._attr_icon = description.icon
 
     async def async_added_to_hass(self) -> None:
@@ -189,7 +188,7 @@ class MySubaruButton(ButtonEntity):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin)
         self._attr_available = vehicle is not None
-        self.hass.add_job(self.async_write_ha_state)
+        self.async_write_ha_state()
 
     async def async_press(self) -> None:
         runtime = self.hass.data.get(DOMAIN, {}).get("runtime", {})
@@ -204,18 +203,12 @@ class MySubaruButton(ButtonEntity):
             selected = store.get("selected_climate_profile", {}).get(self._vin)
             if selected:
                 payload = {"profile": selected}
-        session = async_get_clientsession(self.hass)
-        async with async_timeout.timeout(HTTP_TIMEOUT):
-            if payload is None:
-                resp = await session.post(url)
-            else:
-                resp = await session.post(url, json=payload)
-        if resp.status >= 400:
-            message = await resp.text()
-            raise HomeAssistantError(
-                f"Command failed ({resp.status}) for {self.name}: {message or 'unknown error'}"
-            )
-        await resp.text()
+        await async_api_call(
+            self.hass,
+            url,
+            payload=payload,
+            error_context=f"Command for {self.name}",
+        )
 
     @property
     def extra_state_attributes(self):
@@ -232,5 +225,4 @@ class MySubaruButton(ButtonEntity):
     def device_info(self):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin, {})
-        base_name = self.name.replace(f" {self._description.name}", "")
-        return build_device_info(self._vin, vehicle, base_name)
+        return build_device_info(self._vin, vehicle, self._base_name)

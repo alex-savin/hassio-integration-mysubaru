@@ -13,13 +13,10 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.typing import ConfigType
 import homeassistant.helpers.config_validation as cv
-import aiohttp
-import async_timeout
-from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     CONF_DEVICE_ID,
@@ -33,7 +30,7 @@ from .const import (
     RECONNECT_DELAY,
     UPDATE_SIGNAL,
 )
-from .helpers import HTTP_TIMEOUT
+from .helpers import async_api_call
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,6 +43,30 @@ PLATFORMS = [
     "lock",
     "switch",
 ]
+
+# Service names registered by this integration, used for cleanup on unload.
+SERVICES = (
+    "get_trips",
+    "get_recalls",
+    "get_warning_lights",
+    "get_roadside_assistance",
+    "get_model_info",
+    "get_favorite_pois",
+    "get_valet_settings",
+    "get_geofence_settings",
+    "get_speedfence_settings",
+    "get_curfew_settings",
+    "get_ev_charge_settings",
+    "send_poi",
+    "save_favorite_poi",
+    "set_geofence",
+    "set_speedfence",
+    "set_curfew",
+    "delete_trip",
+    "delete_geofence",
+    "request_roadside_assistance",
+    "refresh_vehicles",
+)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -187,41 +208,9 @@ async def _listen_ws(
             )
         except Exception as err:  # broad catch to allow retries
             _LOGGER.warning("websocket connection dropped; retrying", exc_info=err)
-        await asyncio.wait_for(asyncio.sleep(RECONNECT_DELAY), timeout=None)
-
-
-async def _configure_server(base_http: str, creds_payload: Dict[str, Any]) -> bool:
-    config_url = f"{base_http}/auth/config"
-    try:
-        async with aiohttp.ClientSession() as session:
-            with async_timeout.timeout(10):
-                async with session.post(config_url, json=creds_payload) as resp:
-                    if resp.status >= 400:
-                        _LOGGER.warning(
-                            "failed to configure MySubaru server",
-                            extra={"status": resp.status, "url": config_url},
-                        )
-                        return False
-        return True
-    except Exception as err:
-        _LOGGER.warning(
-            "failed to configure MySubaru server",
-            exc_info=err,
-            extra={"url": config_url},
-        )
-        return False
-
-
-async def _get_status(base_http: str) -> Dict[str, Any]:
-    status_url = f"{base_http}/auth/status"
-    async with aiohttp.ClientSession() as session:
-        with async_timeout.timeout(10):
-            async with session.get(status_url) as resp:
-                resp.raise_for_status()
-                try:
-                    return await resp.json()
-                except Exception:
-                    return {}
+        # Back off before reconnecting, but wake immediately if asked to stop.
+        with contextlib.suppress(TimeoutError):
+            await asyncio.wait_for(stop_event.wait(), timeout=RECONNECT_DELAY)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -248,19 +237,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         .rsplit("/", 1)[0]
     )
     try:
-        status = await _get_status(base_http)
-    except Exception as err:
+        status = await async_api_call(
+            hass,
+            f"{base_http}/auth/status",
+            method="get",
+            error_context="Reaching MySubaru server",
+        )
+    except HomeAssistantError as err:
         raise ConfigEntryNotReady(
             f"Cannot reach MySubaru server at {base_http}"
         ) from err
 
     if not status.get("authenticated"):
-        if not await _configure_server(base_http, creds_payload):
+        try:
+            await async_api_call(
+                hass,
+                f"{base_http}/auth/config",
+                payload=creds_payload,
+                error_context="Configuring MySubaru server",
+            )
+        except HomeAssistantError as err:
             raise ConfigEntryNotReady(
                 f"Cannot configure MySubaru server at {base_http}"
-            )
+            ) from err
 
-    task = hass.loop.create_task(_listen_ws(hass, ws_url, stop_event))
+    task = hass.async_create_background_task(
+        _listen_ws(hass, ws_url, stop_event), name="mysubaru_websocket"
+    )
 
     hass.data.setdefault(DOMAIN, {})["runtime"] = {
         "stop_event": stop_event,
@@ -290,25 +293,10 @@ def _register_services(hass: HomeAssistant, base_http: str) -> None:
     VIN_SCHEMA = vol.Schema({vol.Required("vin"): str})
 
     async def _post(url: str, payload: Any = None) -> Dict[str, Any]:
-        session = async_get_clientsession(hass)
-        async with async_timeout.timeout(HTTP_TIMEOUT) as _:
-            if payload is not None:
-                resp = await session.post(url, json=payload)
-            else:
-                resp = await session.post(url)
-        if resp.status >= 400:
-            text = await resp.text()
-            raise HomeAssistantError(f"Request failed ({resp.status}): {text}")
-        return await resp.json()
+        return await async_api_call(hass, url, payload=payload)
 
     async def _get(url: str) -> Any:
-        session = async_get_clientsession(hass)
-        async with async_timeout.timeout(HTTP_TIMEOUT) as _:
-            resp = await session.get(url)
-        if resp.status >= 400:
-            text = await resp.text()
-            raise HomeAssistantError(f"Request failed ({resp.status}): {text}")
-        return await resp.json()
+        return await async_api_call(hass, url, method="get")
 
     # ── Data retrieval services ─────────────────────────────────────────
 
@@ -628,5 +616,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         runtime["task"].cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await runtime["task"]
+
+    for service in SERVICES:
+        hass.services.async_remove(DOMAIN, service)
+
+    if unload_ok:
+        hass.data.pop(DOMAIN, None)
 
     return unload_ok

@@ -4,18 +4,16 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-import async_timeout
 from homeassistant.components.lock import LockEntity
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import DOMAIN, UPDATE_SIGNAL
 from .device_info import build_device_info
-from .helpers import get_lock_status, get_door_lock_states, HTTP_TIMEOUT
+from .helpers import async_api_call, get_lock_status, get_door_lock_states
 
 
 async def async_setup_platform(
@@ -51,12 +49,13 @@ async def async_setup_entry(
 class MySubaruLock(LockEntity):
     _attr_should_poll = False
     _attr_supported_features = 0
+    _attr_has_entity_name = True
 
     def __init__(self, vin: str, vehicle: Dict[str, Any]) -> None:
         self._vin = vin
         self._attr_unique_id = f"{vin}-lock"
-        name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
-        self._attr_name = f"{name} Lock"
+        self._base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
+        self._attr_name = "Lock"
 
     async def async_added_to_hass(self) -> None:
         self.async_on_remove(
@@ -69,7 +68,7 @@ class MySubaruLock(LockEntity):
         vehicle = store.get("vehicles", {}).get(self._vin)
         if vehicle is None:
             self._attr_available = False
-            self.hass.add_job(self.async_write_ha_state)
+            self.async_write_ha_state()
             return
 
         self._attr_available = True
@@ -100,7 +99,7 @@ class MySubaruLock(LockEntity):
         attrs["last_command_time"] = status.get("time")
 
         self._attr_extra_state_attributes = attrs
-        self.hass.add_job(self.async_write_ha_state)
+        self.async_write_ha_state()
 
     async def async_lock(self, **kwargs) -> None:  # type: ignore[override]
         runtime = self.hass.data.get(DOMAIN, {}).get("runtime", {})
@@ -108,16 +107,9 @@ class MySubaruLock(LockEntity):
         if not base_http:
             raise HomeAssistantError("MySubaru server base URL is unavailable")
 
-        session = async_get_clientsession(self.hass)
-        url = f"{base_http}/vehicle/{self._vin}/lock"
-        async with async_timeout.timeout(HTTP_TIMEOUT):
-            resp = await session.post(url)
-        if resp.status >= 400:
-            detail = await resp.text()
-            raise HomeAssistantError(
-                f"Lock failed ({resp.status}): {detail or 'unknown error'}"
-            )
-        await resp.text()
+        await async_api_call(
+            self.hass, f"{base_http}/vehicle/{self._vin}/lock", error_context="Lock"
+        )
 
     async def async_unlock(self, **kwargs) -> None:  # type: ignore[override]
         runtime = self.hass.data.get(DOMAIN, {}).get("runtime", {})
@@ -125,20 +117,12 @@ class MySubaruLock(LockEntity):
         if not base_http:
             raise HomeAssistantError("MySubaru server base URL is unavailable")
 
-        session = async_get_clientsession(self.hass)
-        url = f"{base_http}/vehicle/{self._vin}/unlock"
-        async with async_timeout.timeout(HTTP_TIMEOUT):
-            resp = await session.post(url)
-        if resp.status >= 400:
-            detail = await resp.text()
-            raise HomeAssistantError(
-                f"Unlock failed ({resp.status}): {detail or 'unknown error'}"
-            )
-        await resp.text()
+        await async_api_call(
+            self.hass, f"{base_http}/vehicle/{self._vin}/unlock", error_context="Unlock"
+        )
 
     @property
     def device_info(self):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin, {})
-        base_name = self.name.replace(" Lock", "")
-        return build_device_info(self._vin, vehicle, base_name)
+        return build_device_info(self._vin, vehicle, self._base_name)
