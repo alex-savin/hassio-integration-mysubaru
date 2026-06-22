@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -73,6 +73,7 @@ async def async_setup_platform(
 ) -> None:
     added: set[str] = set()
 
+    @callback
     def _maybe_add_entities() -> None:
         new_entities: list[MySubaruSwitch] = []
         store: Dict[str, Any] = hass.data.get(DOMAIN, {})
@@ -143,6 +144,7 @@ class MySubaruSwitch(SwitchEntity):
         except Exception:  # noqa: BLE001
             pass  # status polling is best-effort
 
+    @callback
     def _handle_update(self) -> None:
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin)

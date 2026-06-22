@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from homeassistant.components.select import SelectEntity
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -23,6 +23,7 @@ async def async_setup_platform(
 ) -> None:
     added: set[str] = set()
 
+    @callback
     def _maybe_add_entities() -> None:
         new_entities: List[MySubaruClimateProfileSelect] = []
         store: Dict[str, Any] = hass.data.get(DOMAIN, {})
@@ -70,6 +71,7 @@ class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
         )
         self._handle_update()
 
+    @callback
     def _handle_update(self) -> None:
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin)

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -133,6 +133,7 @@ async def async_setup_platform(
 ) -> None:
     added: set[str] = set()
 
+    @callback
     def _maybe_add_entities() -> None:
         new_entities: list[MySubaruButton] = []
         store: Dict[str, Any] = hass.data.get(DOMAIN, {})
@@ -184,6 +185,7 @@ class MySubaruButton(ButtonEntity):
         )
         self._handle_update()
 
+    @callback
     def _handle_update(self) -> None:
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin)
