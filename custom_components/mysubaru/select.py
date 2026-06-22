@@ -47,12 +47,13 @@ async def async_setup_entry(
 
 class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
     _attr_should_poll = False
+    _attr_has_entity_name = True
 
     def __init__(self, vin: str, vehicle: Dict[str, Any]) -> None:
         self._vin = vin
-        base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
+        self._base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
         self._attr_unique_id = f"{vin}-climate-profile"
-        self._attr_name = f"{base_name} Climate Profile"
+        self._attr_name = "Climate Profile"
         self._name_to_key: Dict[str, str] = {}
         self._key_to_name: Dict[str, str] = {}
         self._attr_options = []
@@ -74,7 +75,7 @@ class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
         vehicle = store.get("vehicles", {}).get(self._vin)
         if vehicle is None:
             self._attr_available = False
-            self.hass.add_job(self.async_write_ha_state)
+            self.async_write_ha_state()
             return
 
         profiles: Dict[str, Any] = vehicle.get("ClimateProfiles", {}) or {}
@@ -138,7 +139,7 @@ class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
             "selected_profile_key": selected_store.get(self._vin),
             "user_presets": user_presets,
         }
-        self.hass.add_job(self.async_write_ha_state)
+        self.async_write_ha_state()
 
     async def async_select_option(self, option: str) -> None:
         if option not in self._name_to_key:
@@ -149,11 +150,10 @@ class MySubaruClimateProfileSelect(SelectEntity, RestoreEntity):
         )
         selected_store[self._vin] = self._name_to_key[option]
         self._attr_current_option = option
-        self.hass.add_job(self.async_write_ha_state)
+        self.async_write_ha_state()
 
     @property
     def device_info(self):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin, {})
-        base_name = self.name.replace(" Climate Profile", "")
-        return build_device_info(self._vin, vehicle, base_name)
+        return build_device_info(self._vin, vehicle, self._base_name)

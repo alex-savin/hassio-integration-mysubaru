@@ -5,18 +5,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-import async_timeout
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import DOMAIN, UPDATE_SIGNAL
 from .device_info import build_device_info
-from .helpers import HTTP_TIMEOUT
+from .helpers import async_api_call
 
 
 @dataclass
@@ -100,15 +98,16 @@ async def async_setup_entry(
 
 class MySubaruSwitch(SwitchEntity):
     _attr_should_poll = False
+    _attr_has_entity_name = True
 
     def __init__(
         self, vin: str, vehicle: Dict[str, Any], description: SwitchDescription
     ) -> None:
         self._vin = vin
         self._description = description
-        base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
+        self._base_name = vehicle.get("CarNickname") or vehicle.get("CarName") or vin
         self._attr_unique_id = f"{vin}-{description.key}"
-        self._attr_name = f"{base_name} {description.name}"
+        self._attr_name = description.name
         self._attr_is_on = False
 
     @property
@@ -135,14 +134,12 @@ class MySubaruSwitch(SwitchEntity):
             return
 
         url = f"{base_http}/vehicle/{self._vin}/{self._description.status_action}"
-        session = async_get_clientsession(self.hass)
         try:
-            async with async_timeout.timeout(HTTP_TIMEOUT):
-                resp = await session.get(url)
-            if resp.status < 400:
-                data = await resp.json()
-                self._attr_is_on = bool(data.get("enabled", False))
-                self.async_write_ha_state()
+            data = await async_api_call(
+                self.hass, url, method="get", error_context="Status"
+            )
+            self._attr_is_on = bool(data.get("enabled", False))
+            self.async_write_ha_state()
         except Exception:  # noqa: BLE001
             pass  # status polling is best-effort
 
@@ -150,7 +147,7 @@ class MySubaruSwitch(SwitchEntity):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin)
         self._attr_available = vehicle is not None
-        self.hass.add_job(self.async_write_ha_state)
+        self.async_write_ha_state()
 
     async def _send_command(self, action: str) -> None:
         runtime = self.hass.data.get(DOMAIN, {}).get("runtime", {})
@@ -159,15 +156,7 @@ class MySubaruSwitch(SwitchEntity):
             raise HomeAssistantError("MySubaru server base URL is unavailable")
 
         url = f"{base_http}/vehicle/{self._vin}/{action}"
-        session = async_get_clientsession(self.hass)
-        async with async_timeout.timeout(HTTP_TIMEOUT):
-            resp = await session.post(url)
-        if resp.status >= 400:
-            message = await resp.text()
-            raise HomeAssistantError(
-                f"Command {action} failed ({resp.status}): {message or 'unknown error'}"
-            )
-        await resp.text()
+        await async_api_call(self.hass, url, error_context=f"Command {action}")
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._send_command(self._description.action_on)
@@ -194,5 +183,4 @@ class MySubaruSwitch(SwitchEntity):
     def device_info(self):
         store: Dict[str, Any] = self.hass.data.get(DOMAIN, {})
         vehicle = store.get("vehicles", {}).get(self._vin, {})
-        base_name = self.name.replace(f" {self._description.name}", "")
-        return build_device_info(self._vin, vehicle, base_name)
+        return build_device_info(self._vin, vehicle, self._base_name)
