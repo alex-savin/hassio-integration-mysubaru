@@ -5,11 +5,11 @@ from __future__ import annotations
 import re
 from typing import Any, Dict
 
-import aiohttp
 import async_timeout
 import secrets
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     CONF_DEVICE_ID,
@@ -40,25 +40,28 @@ class MySubaruConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._creds: Dict[str, Any] | None = None
 
     async def _get_json(self, url: str) -> Dict[str, Any]:
-        async with aiohttp.ClientSession() as session:
-            with async_timeout.timeout(10):
-                async with session.get(url) as resp:
-                    resp.raise_for_status()
-                    return await resp.json()
+        session = async_get_clientsession(self.hass)
+        async with async_timeout.timeout(10):
+            async with session.get(url) as resp:
+                resp.raise_for_status()
+                return await resp.json()
 
     async def _post_json(
         self, url: str, payload: Dict[str, Any] | None = None
     ) -> Dict[str, Any]:
-        async with aiohttp.ClientSession() as session:
-            with async_timeout.timeout(10):
-                async with session.post(url, json=payload) as resp:
-                    resp.raise_for_status()
-                    try:
-                        return await resp.json()
-                    except Exception:
-                        return {}
+        session = async_get_clientsession(self.hass)
+        async with async_timeout.timeout(10):
+            async with session.post(url, json=payload) as resp:
+                resp.raise_for_status()
+                try:
+                    return await resp.json()
+                except Exception:
+                    return {}
 
     async def async_step_user(self, user_input=None):
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
+
         errors: Dict[str, str] = {}
 
         if user_input is not None:
